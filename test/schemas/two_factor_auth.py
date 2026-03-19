@@ -1,6 +1,5 @@
 from pydantic import field_serializer
 from datetime import datetime
-from uuid import uuid4
 
 from api.schemas.base import BaseSchema
 

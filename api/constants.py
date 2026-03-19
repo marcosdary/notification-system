@@ -1,5 +1,8 @@
 from enum import Enum
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 from redis import Redis
+from pathlib import Path
 from functools import lru_cache
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -28,12 +31,10 @@ class Settings(BaseSettings):
     )
 
     REDIS_URL: str
-    SUPER_ADMIN_KEY: str
-    SESSION_KEY: str
-    KEY_ADMIN: str
     API_KEY_RESEND: str
+    TOKEN: str
     SENDER: str
-    CREATE_API_KEY: str
+    DATABASE_URL: str
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
@@ -54,6 +55,13 @@ settings = get_settings()
 # Configuração do Redis
 redisClient = Redis.from_url(settings.REDIS_URL, decode_responses=True)
 
+# Configurações de banco de dados
+engine = create_engine(settings.DATABASE_URL)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Session = SessionLocal
+
+# Caminho do Templates
+TEMPLATES_DIR = Path(__file__).parent / "templates"
 
 class ExpirationApiKey(Enum):
     """Enumeração de períodos de expiração para chaves de API."""
@@ -108,3 +116,21 @@ class Roles(Enum):
     USER = "USER"
     ADMIN = "ADMIN"
     SUPER_ADMIN = "SUPER_ADMIN"
+
+class TypeSend(Enum):
+    REGISTER = "REGISTER"
+    PASSWORD_CHANGE = "PASSWORD_CHANGE"
+    TWO_FACTOR_AUTH = "TWO_FACTOR_AUTH"
+    PASSWORD_RESET = "PASSWORD_RESET"
+
+class Status(Enum):
+    PENDING = "PENDING"
+    DONE = "DONE"
+    ERROR = "ERROR"
+    REJECTED = "REJECTED"
+
+class Templates(Enum):
+    PASSWORD_CHANGE = "password_change.html"
+    REGISTER = "register.html"
+    PASSWORD_RESET = "password_reset.html"
+    TWO_F_AUTH = "two_f_auth.html"

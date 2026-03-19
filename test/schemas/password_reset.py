@@ -1,7 +1,7 @@
 from datetime import datetime
 from pydantic import field_serializer
 
-from api.schemas.base import BaseSchema
+from test.schemas.base import BaseSchema
 
 class PasswordResetSchema(BaseSchema):
     subject: str = "Redefinição de Senha"
