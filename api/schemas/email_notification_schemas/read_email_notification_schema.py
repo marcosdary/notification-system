@@ -1,0 +1,4 @@
+from api.schemas.email_notification_schemas.base_email_notification_schema import BaseEmailNotificationSchema
+
+class ReadEmailNotificationSchema(BaseEmailNotificationSchema):
+    pass

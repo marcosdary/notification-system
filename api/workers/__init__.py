@@ -1,1 +1,0 @@
-from api.workers.email_worker import EmailWorker

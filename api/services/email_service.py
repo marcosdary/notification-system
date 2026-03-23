@@ -1,16 +1,15 @@
 import resend
 
-from api.constants import settings
+from api.config import settings
 
 class EmailService:
 
-    def __init__(self, to_email: str) -> None:
+    def __init__(self) -> None:
         
         self._api_key_resend = settings.API_KEY_RESEND
         self._sender = settings.SENDER
-        self._to_email = to_email
 
-    def send(self, subject: str, body: str) -> dict:
+    def send(self, recipient_email: str, subject: str, body: str) -> dict:
         """Envia um e-mail com assunto e corpo em HTML.
 
         Configura a chave de API, define remetente, destinatário, assunto
@@ -31,7 +30,7 @@ class EmailService:
             
             params: resend.Emails.SendParams = {
                 "from": f"HorizonTecnology <{self._sender}>",
-                "to": [self._to_email],
+                "to": [recipient_email],
                 "subject": subject,
                 "html": body, 
             } 

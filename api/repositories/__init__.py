@@ -1,1 +1,1 @@
-from api.repositories.notifications import NotificationsRepository
+from api.repositories.email_notification_repository import EmailNotificationRepository

@@ -1,4 +1,4 @@
-create type type_send as enum (
+create type send_type as enum (
 	'REGISTER', 
 	'PASSWORD_CHANGE', 
 	'PASSWORD_RESET', 
@@ -12,17 +12,21 @@ create type status as enum (
 	'REJECTED'
 );
 
-create table notifications (
-	"idSend" varchar(255) primary key,
-	"info" text not null,
-	"typeSend" type_send not null,
+create table email_notification (
+	"idEmail" varchar(255) primary key,
+	"recipientEmail" varchar(400) not null,
+	
+	"sendType" send_type not null,
 	"status" status not null,
-	"responseServer" text default 'No response',
+	
+	"providerResponse" text default 'No response',
 	"createdAt" timestamp default current_timestamp,
-	"endIn" timestamp default current_timestamp
+	"processedAt" timestamp default current_timestamp
 );
 
-drop table notifications;
+drop table email_notification;
 
-select * from notifications;
-drop type type_send;
+delete from email_notification where "idEmail" = '5436d192-610b-459b-b976-57f44f6e4bbe';
+
+select * from email_notification;
+drop type send_type;
