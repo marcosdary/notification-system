@@ -1,9 +1,5 @@
 from enum import Enum
 
-class Roles(Enum):
-    ADMIN = "ADMIN"
-    SUPER_ADMIN = "SUPER_ADMIN"
-
 class SendType(Enum):
     REGISTER = "REGISTER"
     PASSWORD_CHANGE = "PASSWORD_CHANGE"
@@ -28,7 +24,3 @@ class ExpirationAt(Enum):
     TWENTY_MINUTES  = 20 * 60
     ONE_HOUR        = 60 * 60
 
-class ExpirationTimes(Enum):
-    SESSION_EXPIRATION        = 10_800  # 3h
-    TWO_FA_EXPIRATION         = 600     # 10min
-    PASSWORD_RESET_EXPIRATION = 900     # 15min

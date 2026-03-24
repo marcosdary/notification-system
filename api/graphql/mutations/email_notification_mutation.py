@@ -7,11 +7,12 @@ from api.tasks.email_task import process_email_notification
 from api.repositories import EmailNotificationRepository
 from api.graphql.types import EmailNotificationType, ApiResponseType, ApiErrorType
 from api.graphql.utils import build_response
+from api.graphql.permissions import ApiKeyPermission
 
 @strawberry.type
 class EmailNotificationMutation:
     
-    @strawberry.mutation
+    @strawberry.mutation(permission_classes=[ApiKeyPermission])
     def newEmailNotification(self, schema: EmailNotificationInput) -> ApiResponseType[EmailNotificationType, ApiErrorType]:
         try:
             data = schema.to_pydantic()
@@ -27,7 +28,7 @@ class EmailNotificationMutation:
         except Exception as exc:
             return build_response(False, exc=exc)
 
-    @strawberry.mutation
+    @strawberry.mutation(permission_classes=[ApiKeyPermission])
     def deleteEmailNotification(self, idEmail: str) -> ApiResponseType[None, ApiErrorType]:
         try:
             notification_repo = EmailNotificationRepository()
@@ -40,7 +41,7 @@ class EmailNotificationMutation:
         except Exception as exc:
             return build_response(False, exc=exc)
 
-    @strawberry.mutation
+    @strawberry.mutation(permission_classes=[ApiKeyPermission])
     def deleteAllEmailNotification(self) -> ApiResponseType[None, ApiErrorType]:
         try:
             notification_repo = EmailNotificationRepository()

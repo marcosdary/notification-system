@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     SENDER: str
     DATABASE_URL: str
 
+
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
     return Settings()

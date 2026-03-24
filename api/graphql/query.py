@@ -1,6 +1,6 @@
 import strawberry
 
-from api.graphql.queries.email_notification_query import EmailNotificationQuery
+from api.graphql.queries import EmailNotificationQuery
 
 @strawberry.type
 class Query(EmailNotificationQuery):

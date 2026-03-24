@@ -5,11 +5,12 @@ from api.repositories import EmailNotificationRepository
 
 from api.graphql.types import EmailNotificationType, ApiResponseType, ApiErrorType
 from api.graphql.utils import build_response
+from api.graphql.permissions import ApiKeyPermission
 
 @strawberry.type
 class EmailNotificationQuery:
     
-    @strawberry.field
+    @strawberry.field(permission_classes=[ApiKeyPermission])
     def selectById(self, idEmail: str) -> ApiResponseType[EmailNotificationType, ApiErrorType]:
         try:
             email_notification_repository = EmailNotificationRepository()
@@ -22,7 +23,7 @@ class EmailNotificationQuery:
         except Exception as exc:
             return build_response(False, exc=exc)
 
-    @strawberry.field
+    @strawberry.field(permission_classes=[ApiKeyPermission])
     def selectAll(self) -> ApiResponseType[List[EmailNotificationType], ApiErrorType]:
         try:
             email_notification_repository = EmailNotificationRepository()
