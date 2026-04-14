@@ -1,0 +1,1 @@
+from app.graphql.queries.email_notification_query import EmailNotificationQuery

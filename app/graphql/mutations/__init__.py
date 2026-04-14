@@ -1,0 +1,1 @@
+from app.graphql.mutations.email_notification_mutation import EmailNotificationMutation

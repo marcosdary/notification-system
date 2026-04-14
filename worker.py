@@ -1,4 +1,5 @@
-from api.config import celery_app
+from app.config import celery_app
 
-import api.tasks.email_task
+import app.tasks
+
 

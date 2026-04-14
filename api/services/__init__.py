@@ -1,2 +1,0 @@
-from api.services.email_service import EmailService
-from api.services.load_template_service import LoadTemplate

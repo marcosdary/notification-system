@@ -1,1 +1,0 @@
-from api.models.email_notification_model import EmailNotificationsModel

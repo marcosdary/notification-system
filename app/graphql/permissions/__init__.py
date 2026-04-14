@@ -1,0 +1,1 @@
+from app.graphql.permissions.api_key_permission import ApiKeyPermission
