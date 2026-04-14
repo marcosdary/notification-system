@@ -31,7 +31,7 @@ class WebhookDispatcherService:
             self.__ensure_webhook_exists(schema=schema)
             self.__dispatch(payload=payload, delivery_id=schema.idWebhook)
             self._webhook_repo.update(UpdateWebhookSchema(
-                idWebhook="",
+                idWebhook=schema.idWebhook,
                 response="Enviado com sucesso",
                 status=StatusWebhook.SUCCESS
             ))

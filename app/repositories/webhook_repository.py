@@ -75,7 +75,7 @@ class WebhookRepository:
                 webhook = stmt.first()
                 
                 if not webhook:
-                    raise NotFoundError("Não foi encontrada a notificação. Ocorreu um erro.")
+                    raise NotFoundError("Não foi encontrada o webhook. Ocorreu um erro.")
  
                 for key, value in schema.model_dump().items():
                     if value:
