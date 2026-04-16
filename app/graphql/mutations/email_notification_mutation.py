@@ -69,7 +69,9 @@ class EmailNotificationMutation:
                 extra={
                     "event": "EMAIL_NOTIFICATION_CREATE_ERROR",
                     "mutation": mutation,
-                    "layer": "graphql"
+                    "layer": "graphql",
+                    "type_error": exc.__class__.__name__,
+                    "table": self.__table,
                 }
             )
             return build_response(success=False, exc=Exception("Erro interno ao criar notificação"))
@@ -108,14 +110,16 @@ class EmailNotificationMutation:
                 data=result
             )
 
-        except Exception:
+        except Exception as exc:
             logger.exception(
                 "Erro ao apagar a notificação de e-mail",
                 extra={
                     "event": "EMAIL_NOTIFICATION_DELETE_ERROR",
                     "notification_id": idEmail,
                     "mutation": mutation,
-                    "layer": "graphql"
+                    "layer": "graphql",
+                    "type_error": exc.__class__.__name__,
+                    "table": self.__table,
                 }
             )
             return build_response(success=False, exc=Exception("Erro interno ao excluir notificação"))
@@ -152,13 +156,15 @@ class EmailNotificationMutation:
                 data=result
             )
 
-        except Exception:
+        except Exception as exc:
             logger.exception(
                 "Erro ao apagar todos os registros de notificação.",
                 extra={
                     "event": "EMAIL_NOTIFICATION_DELETE_ALL_ERROR",
                     "mutation": mutation,
-                    "layer": "graphql"
+                    "layer": "graphql",
+                    "type_error": exc.__class__.__name__,
+                    "table": self.__table,
                 }
             )
             return build_response(success=False, exc=Exception("Internal error while deleting all notifications"))

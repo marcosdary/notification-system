@@ -1,32 +1,47 @@
 import logging
 import sys
+from colorlog import ColoredFormatter
 import json_log_formatter
 
 class AppJSONFormatter(json_log_formatter.JSONFormatter):
     def json_record(self, message, extra, record):
         return {
             "timestamp": record.created,
-            "level": record.levelname.lower(),
             "logger": record.name,
-            "service": "email-service",
             "event": extra.get("event", "UNDEFINED_EVENT"),
             "message": message,
-            "trace_id": extra.get("trace_id"),
-            "mutation": None,
-            "layer": None,
             **extra
         }
+    
+class SimpleFormatter(ColoredFormatter):
+    def __init__(self):
+        super().__init__(
+            "%(log_color)s[%(levelname)s]%(reset)s %(blue)s%(name)s%(reset)s: %(message)s",
+            log_colors={
+                "DEBUG": "cyan",
+                "INFO": "green",
+                "WARNING": "yellow",
+                "ERROR": "red",
+                "CRITICAL": "bold_red",
+            }
+        )
 
 def setup_logger():
-    handler = logging.StreamHandler(sys.stdout)
-    handler.setFormatter(AppJSONFormatter())
+    logger = logging.getLogger("app")
+    logger.setLevel(logging.DEBUG)
+    logger.handlers.clear()
 
-    root = logging.getLogger()
-    root.handlers.clear()
-    root.addHandler(handler)
-    root.setLevel(logging.INFO)
+    # Handler para terminal (legível)
+    console_handler = logging.StreamHandler(sys.stdout)
+    console_handler.setFormatter(SimpleFormatter())
+    
+    file_handler = logging.FileHandler("app.log")
+    file_handler.setFormatter(AppJSONFormatter())
 
-    return logging.getLogger("app")
+    logger.addHandler(console_handler)
+    logger.addHandler(file_handler)
+
+    return logger
 
 
 LOGGER = setup_logger()
