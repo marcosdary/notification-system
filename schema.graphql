@@ -1,0 +1,232 @@
+# ============================================
+# CUSTOM SCALARS
+# ============================================
+
+"""
+DateTime scalar type
+Formato: ISO 8601 (YYYY-MM-DDTHH:mm:ssZ)
+Exemplo: 2026-04-16T14:30:00Z
+"""
+scalar DateTime
+
+# ============================================
+# ENUMS
+# ============================================
+
+enum StatusEmail {
+  PENDING
+  DONE
+  ERROR
+  REJECTED
+}
+
+enum SendType {
+  REGISTER
+  PASSWORD_CHANGE
+  TWO_FACTOR_AUTH
+  PASSWORD_RESET
+}
+
+enum ExpirationTime {
+  TEN_MINUTES
+  FIFTEEN_MINUTES
+  TWENTY_MINUTES
+  ONE_HOUR
+}
+
+# ============================================
+# ERROR HANDLING
+# ============================================
+
+type ApiError {
+  errorName: String!
+  typeError: String!
+  statusCode: Int!
+}
+
+# ============================================
+# EMAIL NOTIFICATION TYPES
+# ============================================
+
+type EmailNotification {
+  idEmail: String!
+  recipientEmail: String!
+  status: StatusEmail!
+  sendType: SendType
+  providerResponse: String
+  actionLink: String
+  code: String
+  token: String
+  expiresAt: DateTime
+  createdAt: DateTime!
+  processedAt: DateTime
+  updatedAt: DateTime
+}
+
+type EmailNotificationList {
+  items: [EmailNotification!]!
+  total: Int!
+  page: Int!
+  limit: Int!
+  hasNextPage: Boolean!
+}
+
+# ============================================
+# UNION & RESPONSE TYPES
+# ============================================
+
+union EmailNotificationResult = EmailNotification | EmailNotificationList | Boolean
+
+type ApiResponse {
+  success: Boolean!
+  data: EmailNotificationResult
+  error: ApiError
+  message: String
+  timestamp: DateTime!
+}
+
+# ============================================
+# INPUT TYPES
+# ============================================
+
+input EmailNotificationInput {
+  recipientEmail: String!
+  sendType: SendType!
+  actionLink: String
+  code: String
+  token: String
+  expiresAt: ExpirationTime
+}
+
+input PaginationInput {
+  page: Int! = 1
+  limit: Int! = 10
+}
+
+input DateRangeInput {
+  startDate: DateTime!
+  endDate: DateTime!
+}
+
+# ============================================
+# QUERIES
+# ============================================
+
+type Query {
+  """
+  Busca todas as notificações com paginação
+  """
+  emailNotifications(pagination: PaginationInput): ApiResponse!
+
+  """
+  Busca uma notificação específica por ID
+  """
+  emailNotificationById(idEmail: String!): ApiResponse!
+
+  """
+  Busca notificações por status
+  """
+  emailNotificationsByStatus(
+    status: StatusEmail!
+    pagination: PaginationInput
+  ): ApiResponse!
+
+  """
+  Busca notificações por tipo de envio
+  """
+  emailNotificationsBySendType(
+    sendType: SendType!
+    pagination: PaginationInput
+  ): ApiResponse!
+
+  """
+  Busca notificações por intervalo de datas
+  """
+  emailNotificationsByDateRange(
+    dateRange: DateRangeInput!
+    pagination: PaginationInput
+  ): ApiResponse!
+
+  """
+  Busca notificações criadas após uma data específica
+  """
+  emailNotificationsCreatedAfter(
+    date: DateTime!
+    pagination: PaginationInput
+  ): ApiResponse!
+}
+
+# ============================================
+# MUTATIONS
+# ============================================
+
+type Mutation {
+  """
+  Cria uma nova notificação de email
+  Retorna: ApiResponse com EmailNotification criada
+  """
+  createEmailNotification(input: EmailNotificationInput!): ApiResponse!
+
+  """
+  Atualiza uma notificação de email
+  Retorna: ApiResponse com EmailNotification atualizada
+  """
+  updateEmailNotification(
+    idEmail: String!
+    input: EmailNotificationInput!
+  ): ApiResponse!
+
+  """
+  Deleta uma notificação de email
+  Retorna: ApiResponse com sucesso da operação
+  """
+  deleteEmailNotification(idEmail: String!): ApiResponse!
+
+  """
+  Deleta todas as notificações de email
+  Retorna: ApiResponse com total de notificações deletadas
+  """
+  deleteAllEmailNotifications: ApiResponse!
+
+  """
+  Marca uma notificação como processada
+  Retorna: ApiResponse com EmailNotification atualizada
+  """
+  markAsProcessed(idEmail: String!): ApiResponse!
+
+  """
+  Rejeita uma notificação
+  Retorna: ApiResponse com EmailNotification atualizada
+  """
+  rejectEmailNotification(
+    idEmail: String!
+    reason: String
+  ): ApiResponse!
+
+  """
+  Limpa notificações antigas (anterior à data especificada)
+  Retorna: ApiResponse com total de notificações deletadas
+  """
+  cleanupOldNotifications(beforeDate: DateTime!): ApiResponse!
+}
+
+# ============================================
+# SUBSCRIPTIONS
+# ============================================
+
+type Subscription {
+  """
+  Subscreve a mudanças de status de uma notificação
+  """
+  emailNotificationStatusChanged(idEmail: String!): EmailNotification!
+
+  """
+  Subscreve a novas notificações criadas
+  """
+  emailNotificationCreated: EmailNotification!
+
+  """
+  Subscreve a notificações processadas
+  """
+  emailNotificationProcessed: EmailNotification!
+}

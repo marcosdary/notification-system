@@ -38,7 +38,7 @@ class EmailNotificationMutation:
             logger.info(
                 "E-mail criado com sucesso",
                 extra={
-                    "event": "EMAIL_NOTIFICATION_CREATED_SUCCESS",
+                    "event": "EMAIL_NOTIFICATION_CREATE_SUCCESS",
                     "notification_id": data.idEmail,
                     "mutation": mutation,
                     "layer": "graphql"
