@@ -44,6 +44,8 @@ class WebhookRepository:
                 session.add(webhook)
                 session.commit()
 
+                response = ReadWebhookSchema.model_validate(webhook)
+
                 execution = time() - start
 
                 logger.info(
@@ -57,7 +59,7 @@ class WebhookRepository:
                     }
                 )
 
-                return ReadWebhookSchema.model_validate(webhook)
+                return response
 
             except Exception as exc:
                 session.rollback()

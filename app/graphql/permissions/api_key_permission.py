@@ -19,7 +19,7 @@ class ApiKeyPermission(BasePermission):
             api_key = headers.get("x-api-key")
 
             logger.info(
-                "Iniciar o processo de checagem da Api Key.",
+                "Iniciar o processo de checagem da API Key.",
                 extra={
                     "event": "API_KEY_PERMISSION_START",
                     "permission": "ApiKeyPermission",
@@ -39,7 +39,7 @@ class ApiKeyPermission(BasePermission):
             execution = time() - start
 
             logger.info(
-                "Verificação concluída com sucesso.",
+                "Verificação concluída com sucesso da API Key.",
                 extra={
                     "event": "API_KEY_PERMISSION_SUCCESS",
                     "execution_time": execution,
@@ -51,7 +51,7 @@ class ApiKeyPermission(BasePermission):
         except Exception as exc:
 
             logger.exception(
-                "Erro na verificação da Api Key.",
+                "Erro na verificação da API Key.",
                 extra={
                     "event": "API_KEY_PERMISSION_ERROR",
                     "error": str(exc),

@@ -31,14 +31,6 @@ def process_email_notification(payload: dict):
     email_service = EmailService()
     load_template = LoadTemplate()
     
-    logger.debug(
-        schema.model_dump_json(indent=4),
-        extra={
-            "event": "PROCCESS_EMAIL_NOTIFICATION_DEBUG",
-            "task": task,
-            "layer": "task"
-        }
-    )
     try:     
         logger.debug(
             "O processo de construção e-mail está sendo feito",
@@ -95,7 +87,8 @@ def process_email_notification(payload: dict):
             subject=subject,
             body=template
         )
-    
+
+        
         email_sending_time = time() - start_email_sending_time
         
         status = StatusEmail.DONE

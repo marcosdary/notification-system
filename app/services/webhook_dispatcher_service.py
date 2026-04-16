@@ -25,7 +25,8 @@ class WebhookDispatcherService:
         self._webhook_secret = settings.WEBHOOK_SECRET
         self._webhook_repo = WebhookRepository()
         self._user_agent = "notification-system/1.0.0"
-        
+
+
     def process(self, payload: dict, schema: CreateWebhookSchema) -> None:
         try:
             self.__ensure_webhook_exists(schema=schema)
@@ -47,6 +48,7 @@ class WebhookDispatcherService:
         except Exception:
             raise
 
+
     def mark_failed(self, delivery_id: str, exc: Exception) -> None:
        
         message = f"{type(exc).__name__}: {str(exc)}. Error."
@@ -57,7 +59,6 @@ class WebhookDispatcherService:
         ))
 
       
-
     def mark_retry(self, delivery_id: str, exc: Exception, retries: int, delay: int) -> None:
         
         message = f"{type(exc).__name__}: {str(exc)}. Tentativa {retries} falhou. Próxima tentativa em {delay} segundos."
@@ -68,7 +69,6 @@ class WebhookDispatcherService:
             status=StatusWebhook.RETRYING
         ))
        
-
 
     def __dispatch(self, payload: dict, delivery_id: str) -> None:
         headers = {
@@ -91,7 +91,7 @@ class WebhookDispatcherService:
         if response.status_code >= 400:
             raise FatalError("Erro cliente")
         
-
+        
     def __ensure_webhook_exists(self, schema: CreateWebhookSchema) -> ReadWebhookSchema:
         try:
             return self._webhook_repo.select_by_id(idWebhook=schema.idWebhook)
