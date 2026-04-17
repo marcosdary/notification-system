@@ -5,7 +5,7 @@ from enum import Enum
 from uuid import uuid4
 
 from app.schemas.email_notification_schema.base import BaseEmailNotificationSchema
-from app.constants import SendType, ExpirationAt
+from app.constants import SendType, ExpirationTime
 from app.exceptions import InvalidFieldsException
 
 class CreateEmailNotificationSchema(BaseEmailNotificationSchema):
@@ -17,7 +17,7 @@ class CreateEmailNotificationSchema(BaseEmailNotificationSchema):
     actionLink: str | None = None
     code: str | None = None
     token: str | None = None
-    expiresAt: ExpirationAt | None = ExpirationAt.FIFTEEN_MINUTES
+    expiresAt: ExpirationTime | None = ExpirationTime.FIFTEEN_MINUTES
 
     @field_serializer("sendType", "expiresAt", mode="plain")
     def serialize_enum(self, value: Enum) -> str | int:

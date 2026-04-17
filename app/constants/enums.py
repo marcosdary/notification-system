@@ -25,7 +25,7 @@ class StatusWebhook(Enum):
     RETRYING    = "RETRYING"
     DEAD_LETTE  = "DEAD_LETTER"
   
-class ExpirationAt(Enum):
+class ExpirationTime(Enum):
     TEN_MINUTES     = 10 * 60
     FIFTEEN_MINUTES = 15 * 60
     TWENTY_MINUTES  = 20 * 60

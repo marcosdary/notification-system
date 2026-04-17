@@ -1,10 +1,11 @@
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy import select, delete
+from sqlalchemy import select, delete, and_, func
 from time import time
+from datetime import datetime
 
 from app.core import LOGGER as logger
 from app.config import SessionLocalAsync as SessionAsync, SessionLocalSync as SessionSync
-from app.constants import StatusEmail
+from app.constants import StatusEmail, SendType
 from app.exceptions import (
     EntityValidationError,
     UnknownError,
@@ -17,6 +18,7 @@ from app.schemas.email_notification_schema import (
     ListEmailNotificationSchema,
     UpdateEmailNotificationSchema,
 )
+from app.schemas import PaginationSchema, DateRangeSchema
 from app.models import EmailNotificationsModel
 
 
@@ -25,6 +27,55 @@ class EmailNotificationRepository:
 
     def __init__(self):
         self.__table = "email_notification"
+
+    def _build_filters(
+        self,
+        date_range: DateRangeSchema | None,
+        status_email: StatusEmail | None,
+        send_type: SendType | None,
+        date: datetime | None
+    ) -> list:
+        filters = []
+                
+        if date_range:
+            filters.append(
+                EmailNotificationsModel.createdAt.between(
+                date_range.startDate,
+                date_range.endDate
+            )
+        )
+
+        if status_email:
+            filters.append(EmailNotificationsModel.status == status_email)
+                
+        if send_type:
+            filters.append(EmailNotificationsModel.sendType == send_type)
+
+        if date:
+            filters.append(func.date(EmailNotificationsModel.createdAt) == date)
+
+        return filters
+
+    async def _count(self, session, filters: list) -> int:
+        count_query = select(func.count()).select_from(EmailNotificationsModel)
+        if filters:
+            count_query = count_query.where(and_(*filters))
+        return await session.scalar(count_query)
+    
+    def _build_query(self, filters: list, pagination: PaginationSchema):
+        query = select(EmailNotificationsModel)
+
+        if filters:
+            query = query.where(and_(*filters))
+
+        if filters:
+            query = query.where(and_(*filters))
+
+        if not pagination.all_:
+            offset = (pagination.page - 1) * pagination.limit
+            query = query.offset(offset).limit(pagination.limit)
+
+        return query.order_by(EmailNotificationsModel.createdAt.desc())
 
     async def create(self, schema: CreateEmailNotificationSchema) -> ReadEmailNotificationSchema:
         repository = "EmailNotificationRepository.create"
@@ -154,65 +205,84 @@ class EmailNotificationRepository:
                 )
                 raise
 
-    async def select_all(self, page: int = 1, limit: int = 5) -> ListEmailNotificationSchema:
-        repository = "EmailNotificationRepository.select_all"
+    async def select_filter_all(
+        self, 
+        pagination: PaginationSchema, 
+        date_range: DateRangeSchema = None,
+        status_email: StatusEmail = None, 
+        send_type: SendType = None,
+        date: datetime = None
+    ) -> ListEmailNotificationSchema:
+        repository = "EmailNotificationRepository.select_filter_all"
+
+        logger.info(
+            "Buscando lista de email notifications.",
+            extra={
+                "event": "EMAIL_NOTIFICATION_REPOSITORY_SELECT_ALL_START",
+                "repository": repository,
+                "layer": "repository",
+                "filter_by": {
+                    "pagination": pagination.model_dump(),
+                    "date_range": date_range.model_dump() if date_range else None,
+                    "send_type": send_type,
+                    "status_email": status_email
+                },
+                "table": self.__table,
+            }
+        )
 
         async with SessionAsync() as session:
-            start = time()
-
             try:
-                logger.info(
-                    "Buscando lista de email notifications.",
-                    extra={
-                        "event": "EMAIL_NOTIFICATION_REPOSITORY_SELECT_ALL_START",
-                        "repository": repository,
-                        "layer": "repository",
-                        "filter_by": {"page": page, "limit": limit},
-                        "table": self.__table,
-                    }
-                )
+                start = time()    
 
-                offset = (page - 1) * limit
+                filters = self._build_filters(date_range, status_email, send_type, date)          
 
-                stmt = await session.execute(
-                    select(EmailNotificationsModel)
-                    .order_by(EmailNotificationsModel.createdAt)
-                    .offset(offset)
-                    .limit(limit)
-                )
+                total = await self._count(session, filters)
+                
+                query = self._build_query(filters, pagination)
 
-                notifs = stmt.scalars().all()
+                stmt = await session.execute(query)
+                records = stmt.scalars().all()
 
-                if not notifs:
+                if not records:
                     raise NotFoundError("Nenhuma notificação encontrada.")
-
+                
                 execution = time() - start
 
                 logger.info(
                     "Lista de email notifications retornada com sucesso.",
                     extra={
-                        "event": "EMAIL_NOTIFICATION_REPOSITORY_SELECT_ALL_SUCCESS",
+                        "event": "EMAIL_NOTIFICATION_REPOSITORY_SELECT_FILTER_ALL_SUCCESS",
                         "repository": repository,
-                        "rows": len(notifs),
+                        "rows": len(records),
                         "layer": "repository",
                         "execution_time": execution,
-                        "filter_by": {"page": page, "limit": limit},
+                        "filter_by": {
+                            "pagination": pagination.model_dump(),
+                            "date_range": date_range.model_dump() if date_range else None,
+                            "send_type": send_type,
+                            "status_email": status_email
+                        },
                         "table": self.__table,
                     }
                 )
 
                 return ListEmailNotificationSchema(
-                    notifications=[
-                        ReadEmailNotificationSchema.model_validate(row)
-                        for row in notifs
-                    ]
+                        items=[
+                            ReadEmailNotificationSchema.model_validate(row)
+                            for row in records
+                        ],
+                        limit=pagination.limit,
+                        page=pagination.page,
+                        total=total,
+                        hasNextPage=(pagination.page * pagination.limit) < total
                 )
-
+            
             except Exception as exc:
                 logger.exception(
                     "Erro ao buscar lista de email notifications.",
                     extra={
-                        "event": "EMAIL_NOTIFICATION_REPOSITORY_SELECT_ALL_ERROR",
+                        "event": "EMAIL_NOTIFICATION_REPOSITORY_SELECT_FILTER_ALL_ERROR",
                         "repository": repository,
                         "error": str(exc),
                         "layer": "repository",

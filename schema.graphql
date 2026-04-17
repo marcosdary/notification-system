@@ -13,25 +13,28 @@ scalar DateTime
 # ENUMS
 # ============================================
 
+"""Define o status atual de uma notificação de e-mail"""
 enum StatusEmail {
-  PENDING
-  DONE
-  ERROR
-  REJECTED
+  PENDING # Pendente
+  DONE # Concluído
+  ERROR # Erro
+  REJECTED # Rejeitado
 }
 
+"""Define o tipo de notificação que será enviada ao destinatário"""
 enum SendType {
-  REGISTER
-  PASSWORD_CHANGE
-  TWO_FACTOR_AUTH
-  PASSWORD_RESET
+  REGISTER # Novo cadastro
+  PASSWORD_CHANGE # Senha alterada com sucesso
+  TWO_FACTOR_AUTH # Verificação de duas etapas
+  PASSWORD_RESET # Link para alteração da senha atual
 }
 
+"""Define o tempo de expiração de um link ou código enviado ao destinatário"""
 enum ExpirationTime {
-  TEN_MINUTES
-  FIFTEEN_MINUTES
-  TWENTY_MINUTES
-  ONE_HOUR
+  TEN_MINUTES # 10 minutos
+  FIFTEEN_MINUTES # 15 minutos
+  TWENTY_MINUTES # 20 minutos
+  ONE_HOUR # 1 hora
 }
 
 # ============================================
@@ -39,8 +42,11 @@ enum ExpirationTime {
 # ============================================
 
 type ApiError {
+  """ Informação do erro """
   errorName: String!
+  """ Tipo do erro """ 
   typeError: String!
+  """ Status do erro em HTTP """
   statusCode: Int!
 }
 
@@ -49,40 +55,77 @@ type ApiError {
 # ============================================
 
 type EmailNotification {
+  """ ID da notificação do e-mail """
   idEmail: String!
+  """ Destinatário onde será enviado o e-mail """
   recipientEmail: String!
+  """ Status da operação de notificação """
   status: StatusEmail!
+  """ Qual a notificação será enviada """
   sendType: SendType
+  """ Resposta do provedor que envio o e-mail """
   providerResponse: String
+  """ 
+    Link onde será feita a operação de atualização 
+    Ex.: Redefinir nova senha
+  """
   actionLink: String
+  """ Código para verificação de 2 etapas """
   code: String
+  """ 
+    Token para validar validar uma determinada ação. 
+    Ex.: Comprova se aquele fez o pedido da alteração de senha
+  """
   token: String
+  """  
+    Expiração em faixa de tempo 
+    Ex.: Redifinir senha
+  """
   expiresAt: DateTime
+  """ Data e hora de criação da notificação """
   createdAt: DateTime!
+  """ Momento que foi processada pela provedor """
   processedAt: DateTime
+  """ Data e hora da atualização das informações da notificação """
   updatedAt: DateTime
 }
 
 type EmailNotificationList {
+  """ Itens da notificação """
   items: [EmailNotification!]!
+  """ Total de notificações """
   total: Int!
+  """ Página pedida """
   page: Int!
+  """ Limite de itens por página pedida """
   limit: Int!
-  hasNextPage: Boolean!
+  """ Se há próxima página """
+  hasNextPage: Boolean! 
 }
 
 # ============================================
 # UNION & RESPONSE TYPES
 # ============================================
 
+"""
+Resultado possível das operações de notificação:
+- EmailNotification: operações em item único (busca, criação, atualização)
+- EmailNotificationList: operações de listagem paginada
+- Boolean: operações de deleção (indica sucesso da operação)
+"""
 union EmailNotificationResult = EmailNotification | EmailNotificationList | Boolean
 
 type ApiResponse {
+  """ Sucesso """
   success: Boolean!
+  """ Dados """
   data: EmailNotificationResult
+  """ Erro """
   error: ApiError
+  """ Informações adicionais (Opcionais) """
   message: String
-  timestamp: DateTime!
+  """ Data e hora de envio em timestamp (Decimais) """
+  timestamp: Float!
 }
 
 # ============================================
@@ -90,21 +133,31 @@ type ApiResponse {
 # ============================================
 
 input EmailNotificationInput {
+  """ E-mail do destinatário """
   recipientEmail: String!
+  """ Tipo de envio de notificação """
   sendType: SendType!
+  """ Link para acesso """
   actionLink: String
+  """ Código para confirmação """
   code: String
+  """ Token para validação do e-mail """
   token: String
+  """ Data e hora da expiração """
   expiresAt: ExpirationTime
 }
 
 input PaginationInput {
+  """ Página """
   page: Int! = 1
+  """ Limite """
   limit: Int! = 10
 }
 
 input DateRangeInput {
+  """ Data ínicio """
   startDate: DateTime!
+  """ Data fim """
   endDate: DateTime!
 }
 
@@ -121,12 +174,16 @@ type Query {
   """
   Busca uma notificação específica por ID
   """
-  emailNotificationById(idEmail: String!): ApiResponse!
+  emailNotificationById(
+    """ID único da notificação a ser buscada"""
+    idEmail: String!
+  ): ApiResponse!
 
   """
   Busca notificações por status
   """
-  emailNotificationsByStatus(
+  selectByStatus(
+    """ Status da busca para determinadas notificações """
     status: StatusEmail!
     pagination: PaginationInput
   ): ApiResponse!
@@ -134,7 +191,8 @@ type Query {
   """
   Busca notificações por tipo de envio
   """
-  emailNotificationsBySendType(
+  selectBySendType(
+    """ Tipo de envio para determinadas notificações """
     sendType: SendType!
     pagination: PaginationInput
   ): ApiResponse!
@@ -142,7 +200,8 @@ type Query {
   """
   Busca notificações por intervalo de datas
   """
-  emailNotificationsByDateRange(
+ selectByDateRange(
+    """ Filtro por datas para determinadas notificações """
     dateRange: DateRangeInput!
     pagination: PaginationInput
   ): ApiResponse!
@@ -151,6 +210,7 @@ type Query {
   Busca notificações criadas após uma data específica
   """
   emailNotificationsCreatedAfter(
+    """ Filtro para data específica para determinadas notificações """
     date: DateTime!
     pagination: PaginationInput
   ): ApiResponse!
@@ -165,14 +225,19 @@ type Mutation {
   Cria uma nova notificação de email
   Retorna: ApiResponse com EmailNotification criada
   """
-  createEmailNotification(input: EmailNotificationInput!): ApiResponse!
+  createEmailNotification(
+    """Dados da notificação a ser criada"""
+    input: EmailNotificationInput!
+  ): ApiResponse!
 
   """
   Atualiza uma notificação de email
   Retorna: ApiResponse com EmailNotification atualizada
   """
   updateEmailNotification(
+    """ID da notificação a ser atualizada"""
     idEmail: String!
+    """Novos dados da notificação"""
     input: EmailNotificationInput!
   ): ApiResponse!
 
@@ -180,10 +245,14 @@ type Mutation {
   Deleta uma notificação de email
   Retorna: ApiResponse com sucesso da operação
   """
-  deleteEmailNotification(idEmail: String!): ApiResponse!
+  deleteEmailNotification(
+    """ID da notificação a ser deletada"""
+    idEmail: String!
+  ): ApiResponse!
 
   """
-  Deleta todas as notificações de email
+  Deleta todas as notificações de email.
+  ⚠️ Operação irreversível — remove permanentemente todos os registros.
   Retorna: ApiResponse com total de notificações deletadas
   """
   deleteAllEmailNotifications: ApiResponse!
@@ -192,22 +261,31 @@ type Mutation {
   Marca uma notificação como processada
   Retorna: ApiResponse com EmailNotification atualizada
   """
-  markAsProcessed(idEmail: String!): ApiResponse!
+  markAsProcessed(
+    """ID da notificação a ser marcada como processada"""
+    idEmail: String!
+  ): ApiResponse!
 
   """
   Rejeita uma notificação
   Retorna: ApiResponse com EmailNotification atualizada
   """
   rejectEmailNotification(
+    """ID da notificação a ser rejeitada"""
     idEmail: String!
+    """Motivo da rejeição (opcional)"""
     reason: String
   ): ApiResponse!
 
   """
-  Limpa notificações antigas (anterior à data especificada)
+  Limpa notificações antigas (anterior à data especificada).
+  ⚠️ Operação irreversível — remove permanentemente notificações anteriores à data informada.
   Retorna: ApiResponse com total de notificações deletadas
   """
-  cleanupOldNotifications(beforeDate: DateTime!): ApiResponse!
+  cleanupOldNotifications(
+    """Data de corte — notificações anteriores a esta data serão removidas"""
+    beforeDate: DateTime!
+  ): ApiResponse!
 }
 
 # ============================================
@@ -218,7 +296,10 @@ type Subscription {
   """
   Subscreve a mudanças de status de uma notificação
   """
-  emailNotificationStatusChanged(idEmail: String!): EmailNotification!
+  emailNotificationStatusChanged(
+    """ID da notificação a ser monitorada"""
+    idEmail: String!
+  ): EmailNotification!
 
   """
   Subscreve a novas notificações criadas

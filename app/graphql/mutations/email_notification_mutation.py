@@ -1,6 +1,6 @@
 import strawberry
 
-from app.graphql.inputs.email_notification_input import EmailNotificationInput
+from app.graphql.inputs import EmailNotificationInput
 from app.core import LOGGER as logger
 from app.tasks.email_task import process_email_notification
 from app.repositories import EmailNotificationRepository

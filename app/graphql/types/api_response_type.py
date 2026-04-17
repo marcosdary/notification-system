@@ -10,4 +10,5 @@ class ApiResponseType(Generic[D, E]):
     success: bool
     data: D | None = None
     error: E | None = None
-
+    message: str | None = None
+    timestamp: float

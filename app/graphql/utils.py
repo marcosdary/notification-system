@@ -1,8 +1,10 @@
+from datetime import datetime
+
 from app.schemas import ApiErrorSchema
 from app.graphql.types import ApiResponseType
 
 
-def build_response(success: bool, data=None, exc: Exception | None = None) -> ApiResponseType:
+def build_response(success: bool, data=None, message: str = None, exc: Exception | None = None) -> ApiResponseType:
     """Constrói um ApiResponse padronizado.
 
     Args:
@@ -14,7 +16,12 @@ def build_response(success: bool, data=None, exc: Exception | None = None) -> Ap
         ApiResponse: objeto pronto para ser retornado ao cliente.
     """
     if success:
-        return ApiResponseType(success=True, data=data)
+        return ApiResponseType(
+            success=True, 
+            data=data,
+            message=message,
+            timestamp=datetime.now().timestamp()
+        )
 
     # Caso de erro
     return ApiResponseType(
@@ -24,4 +31,6 @@ def build_response(success: bool, data=None, exc: Exception | None = None) -> Ap
             errorName=str(exc) if exc else "",
             statusCode=getattr(exc, "status_code", 500),
         ),
+        message=message,
+        timestamp=datetime.now().timestamp()
     )

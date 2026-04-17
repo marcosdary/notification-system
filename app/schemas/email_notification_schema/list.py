@@ -4,4 +4,8 @@ from app.schemas.email_notification_schema.base import BaseEmailNotificationSche
 from app.schemas.email_notification_schema.read import ReadEmailNotificationSchema
 
 class ListEmailNotificationSchema(BaseEmailNotificationSchema):
-    notifications: Optional[List[ReadEmailNotificationSchema]] | None = [] 
+    items: Optional[List[ReadEmailNotificationSchema]] | None = [] 
+    total: int | None = 0
+    page: int
+    limit: int
+    hasNextPage: bool | None = True
