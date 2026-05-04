@@ -1,9 +1,10 @@
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy import select, delete, and_, func
-from datetime import datetime
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, delete, and_
+from typing import List
 
-from app.core.config import SessionLocalAsync as SessionAsync, SessionLocalSync as SessionSync
-from app.core.constants import StatusEmail, SendType
+
+from app.core.constants import StatusEmail
 from app.exceptions import (
     EntityValidationError,
     UnknownError,
@@ -12,59 +13,36 @@ from app.exceptions import (
 )
 from app.schemas.email_notification_schema import (
     EmailNotificationCreateSchema,
-    EmailNotificationReadSchema,
-    ListEmailNotificationSchema,
     EmailNotificationUpdateSchema,
+    EmailNotificationFilterBySchema
 )
-from app.schemas import PaginationSchema, DateRangeSchema
+from app.schemas import PaginationSchema
 from app.models import EmailNotificationsModel
 
 
 class EmailNotificationRepository:
 
 
-    def __init__(self):
-        self.__table = "email_notification"
+    def __init__(self, session: AsyncSession):
+        self.session = session
 
     def _build_filters(
         self,
-        date_range: DateRangeSchema | None,
-        status_email: StatusEmail | None,
-        send_type: SendType | None,
-        date: datetime | None
+        filter_by: EmailNotificationFilterBySchema
     ) -> list:
         filters = []
                 
-        if date_range:
-            filters.append(
-                EmailNotificationsModel.createdAt.between(
-                date_range.startDate,
-                date_range.endDate
-            )
-        )
-
-        if status_email:
-            filters.append(EmailNotificationsModel.status == status_email)
+        if filter_by.status:
+            filters.append(EmailNotificationsModel.status == filter_by.status)
                 
-        if send_type:
-            filters.append(EmailNotificationsModel.sendType == send_type)
-
-        if date:
-            filters.append(func.date(EmailNotificationsModel.createdAt) == date)
+        if filter_by.sendType:
+            filters.append(EmailNotificationsModel.sendType == filter_by.sendType)
 
         return filters
 
-    async def _count(self, session, filters: list) -> int:
-        count_query = select(func.count()).select_from(EmailNotificationsModel)
-        if filters:
-            count_query = count_query.where(and_(*filters))
-        return await session.scalar(count_query)
-    
+
     def _build_query(self, filters: list, pagination: PaginationSchema):
         query = select(EmailNotificationsModel)
-
-        if filters:
-            query = query.where(and_(*filters))
 
         if filters:
             query = query.where(and_(*filters))
@@ -75,167 +53,85 @@ class EmailNotificationRepository:
 
         return query.order_by(EmailNotificationsModel.createdAt.desc())
 
-    async def create(self, schema: EmailNotificationCreateSchema) -> EmailNotificationReadSchema:
-
-
-        async with SessionAsync() as session:
-           
-
-            try:
+    async def create(self, schema: EmailNotificationCreateSchema) -> EmailNotificationsModel:
+        try:
                
-                notif = EmailNotificationsModel(**schema.model_dump())
-                session.add(notif)
-                await session.commit()
-                return EmailNotificationReadSchema.model_validate(notif)
+            notif = EmailNotificationsModel(**schema.model_dump())
+            self.session.add(notif)
+            return notif
 
-            except IntegrityError as exc:
-                await session.rollback()
+        except IntegrityError as exc:
+            raise EntityValidationError("Erro de integridade nos dados.")
 
-                raise EntityValidationError("Erro de integridade nos dados.")
+        except Exception as exc:
+            raise UnknownError("Erro desconhecido ao salvar dados.")
 
-            except Exception as exc:
-                await session.rollback()
+    async def select_by_id(self, idEmail: str) -> EmailNotificationsModel:
+        notif = await self.session.scalar(
+            select(EmailNotificationsModel).where(
+                EmailNotificationsModel.idEmail == idEmail
+            )
+        )
 
-                raise UnknownError("Erro desconhecido ao salvar dados.")
+        if not notif:
+            raise NotFoundError("Notificação não encontrada.")
 
-    async def select_by_id(self, idEmail: str) -> EmailNotificationReadSchema:
-
-        async with SessionAsync() as session:
-        
-
-            try:
-
-                stmt = await session.execute(
-                    select(EmailNotificationsModel).where(
-                        EmailNotificationsModel.idEmail == idEmail
-                    )
-                )
-
-                notif = stmt.scalars().first()
-
-                if not notif:
-                    raise NotFoundError("Notificação não encontrada.")
-
-               
-
-                return EmailNotificationReadSchema.model_validate(notif)
-
-            except Exception as exc:
-        
-                raise
+        return notif
 
     async def select_filter_all(
         self, 
         pagination: PaginationSchema, 
-        date_range: DateRangeSchema = None,
-        status_email: StatusEmail = None, 
-        send_type: SendType = None,
-        date: datetime = None
-    ) -> ListEmailNotificationSchema:
+        filter_by: EmailNotificationFilterBySchema = None
+    ) -> List[EmailNotificationsModel]:
+        filters = []
 
-        async with SessionAsync() as session:
-            try:
+        if filter_by:
+            filters = self._build_filters(filter_by)          
                 
-                filters = self._build_filters(date_range, status_email, send_type, date)          
+        query = self._build_query(filters, pagination)
 
-                total = await self._count(session, filters)
+        records = await self.session.scalars(query)
+
+        if not records:
+            raise NotFoundError("Nenhuma notificação encontrada.")
                 
-                query = self._build_query(filters, pagination)
-
-                stmt = await session.execute(query)
-                records = stmt.scalars().all()
-
-                if not records:
-                    raise NotFoundError("Nenhuma notificação encontrada.")
-                
-
-                return ListEmailNotificationSchema(
-                        items=[
-                            EmailNotificationReadSchema.model_validate(row)
-                            for row in records
-                        ],
-                        limit=pagination.limit,
-                        page=pagination.page,
-                        total=total,
-                        hasNextPage=(pagination.page * pagination.limit) < total
-                )
+        return records.all()
             
-            except Exception as exc:
-                
-                raise
-
-
-    def update(self, schema: EmailNotificationUpdateSchema) -> EmailNotificationReadSchema:
-       
-
-        with SessionSync() as session:
-
-            try:
-                
-
-                notif = session.query(EmailNotificationsModel).filter(
-                    EmailNotificationsModel.idEmail == schema.idEmail
-                ).first()
-
-                if not notif:
-                    raise NotFoundError("Notificação não encontrada.")
-
-                for key, value in schema.model_dump().items():
-                    setattr(notif, key, value)
-
-                session.commit()
-
-                return EmailNotificationReadSchema.model_validate(notif)
-
-            except Exception as exc:
-                session.rollback()
-
-                raise
-
-
-    async def delete(self, idEmail: str) -> None:
-
-        async with SessionAsync() as session:
-            
-
-            try:
         
+    def update(self, schema: EmailNotificationUpdateSchema) -> EmailNotificationsModel:
+        notif = self.session.query(EmailNotificationsModel).filter(
+            EmailNotificationsModel.idEmail == schema.idEmail
+        ).first()
 
-                stmt = await session.execute(
-                    select(EmailNotificationsModel).where(
-                        EmailNotificationsModel.idEmail == idEmail
-                    )
-                )
+        if not notif:
+            raise NotFoundError("Notificação não encontrada.")
 
-                notif = stmt.scalars().first()
+        for key, value in schema.model_dump().items():
+            setattr(notif, key, value)
 
-                if not notif:
-                    raise NotFoundError("Notificação não encontrada.")
+        return notif
 
-                if notif.status == StatusEmail.PENDING:
-                    raise ForbiddenActionError("Ação proibida para status PENDING.")
 
-                await session.delete(notif)
-                await session.commit()
-               
+    async def delete(self, idEmail: str) -> None:  
+        notif = await self.session.scalar(
+            select(EmailNotificationsModel).where(
+                EmailNotificationsModel.idEmail == idEmail
+            )
+        )
 
-            except Exception as exc:
-                await session.rollback()
+        if not notif:
+            raise NotFoundError("Notificação não encontrada.")
 
-                raise
+        if notif.status == StatusEmail.PENDING:
+            raise ForbiddenActionError("Ação proibida para status PENDING.")
+
+        await self.session.delete(notif)
+              
 
 
     async def delete_all(self) -> None:
-
-        async with SessionAsync() as session:
-
-            try:
-
-                await session.execute(delete(EmailNotificationsModel))
-                await session.commit()
+        await self.session.execute(delete(EmailNotificationsModel))
+              
 
 
-            except Exception as exc:
-                await session.rollback()
-
-                raise
+           

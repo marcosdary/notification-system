@@ -1,7 +1,4 @@
-from pydantic import BaseModel, ConfigDict, field_serializer
-from enum import Enum
-
-from app.constants import StatusWebhook
+from pydantic import BaseModel, ConfigDict
 
 class BaseWebhookSchema(BaseModel):
 

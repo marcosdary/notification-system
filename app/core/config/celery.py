@@ -1,8 +1,7 @@
 from celery import Celery
 from celery.utils.log import get_task_logger
-import ssl
 
-from app.config.settings import settings
+from app.core.config.settings import settings
 
 celery_app = Celery(
     "worker",

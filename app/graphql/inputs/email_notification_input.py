@@ -9,8 +9,6 @@ from app.schemas.email_notification_schema import (
 class EmailNotificationInput:
     pass
 
-
-
 @pydantic_input(EmailNotificationFilterBySchema, all_fields=True)
 class EmailNotificationFilterByInput:
     pass

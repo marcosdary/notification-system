@@ -1,8 +1,8 @@
-from app.constants.enums import (
+from app.core.constants.enums import (
     SendType,
     Templates,
     StatusEmail,
     ExpirationTime,
     StatusWebhook
 )
-from app.constants.paths import TEMPLATES_DIR
+from app.core.constants.paths import TEMPLATES_DIR

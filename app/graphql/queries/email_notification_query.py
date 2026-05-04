@@ -1,11 +1,11 @@
 import strawberry
 from strawberry.field_extensions import InputMutationExtension
 from strawberry.exceptions import StrawberryGraphQLError
-from datetime import datetime
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.repositories import EmailNotificationRepository
 
-from app.core import LOGGER as logger
+from app.schemas.email_notification_schema import EmailNotificationReadSchema, ListEmailNotificationSchema
 from app.graphql.types import EmailNotificationType, ListEmailNotificationType
 from app.graphql.inputs import PaginationInput, EmailNotificationFilterByInput
 from app.graphql.permissions import ApiKeyPermission
@@ -14,24 +14,31 @@ from app.graphql.permissions import ApiKeyPermission
 class EmailNotificationQuery:
     
     @strawberry.field(permission_classes=[ApiKeyPermission])
-    async def selectById(self, idEmail: str) -> EmailNotificationType:
+    async def selectById(self, info: strawberry.Info, idEmail: str) -> EmailNotificationType:
         try:
-            email_notification_repository = EmailNotificationRepository()
-            return await email_notification_repository.select_by_id(idEmail)
+            session: AsyncSession = info.context["session"]
+            email_notification_repository = EmailNotificationRepository(session=session)
+            data = await email_notification_repository.select_by_id(idEmail)
+            return EmailNotificationReadSchema.model_validate(data)
         
         except Exception as exc:
-            
             raise StrawberryGraphQLError(str(exc))
 
     @strawberry.field(permission_classes=[ApiKeyPermission], extensions=[InputMutationExtension()])
-    async def selectAll(self, filterBy: EmailNotificationFilterByInput, pagination: PaginationInput) -> ListEmailNotificationType:
+    async def selectAll(
+        self, info: strawberry.Info,  
+        pagination: PaginationInput,
+        filterBy: EmailNotificationFilterByInput = None
+    ) -> ListEmailNotificationType:
         try:
-            email_notification_repository = EmailNotificationRepository()
+            session: AsyncSession = info.context["session"]
+            email_notification_repository = EmailNotificationRepository(session=session)
+            filter_by = filterBy.to_pydantic() if filterBy else None
             pagination = pagination.to_pydantic()
-            return await email_notification_repository.select_filter_all(pagination=pagination)
+            rows = await email_notification_repository.select_filter_all(filter_by=filter_by, pagination=pagination)
+            return ListEmailNotificationSchema.model_validate(rows)
         
         except Exception as exc:
-
             raise StrawberryGraphQLError(str(exc))
         
    

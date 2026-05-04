@@ -2,7 +2,7 @@ from pydantic import field_serializer
 from enum import Enum
 from datetime import datetime
 
-from app.constants import StatusWebhook
+from app.core.constants import StatusWebhook
 from app.schemas.webhook_schema.base import BaseWebhookSchema
 
 class CreateWebhookSchema(BaseWebhookSchema):

@@ -1,30 +1,16 @@
 from datetime import datetime, timedelta
-from uuid import uuid4
-from time import time
 
-from app.constants import Templates, SendType, StatusEmail
-from app.core import LOGGER as logger
-from app.config import celery_app
+from app.core.constants import Templates, SendType, StatusEmail
+from app.core.config import celery_app
 from app.schemas.email_notification_schema import (
     EmailNotificationCreateSchema, 
     EmailNotificationUpdateSchema,
 )
 from app.services import EmailService, LoadTemplate
 from app.repositories import EmailNotificationRepository
-from app.tasks.deliver_webhook import deliver_webhook
 
 @celery_app.task
 def process_email_notification(payload: dict):
-    task = "task.process_email_notification"
-    logger.info(
-        "Iniciando a tarefa de envia a notificação para e-mail",
-        extra={
-            "event": "PROCESS_EMAIL_NOTIFICATION_START",
-            "task": task,
-            "layer": "task"
-        }
-    )
-    start = time()
 
     schema = EmailNotificationCreateSchema(**payload)
     notification_repo = EmailNotificationRepository()
@@ -32,15 +18,6 @@ def process_email_notification(payload: dict):
     load_template = LoadTemplate()
     
     try:     
-        logger.debug(
-            "O processo de construção e-mail está sendo feito",
-            extra={
-                "event": "EMAIL_NOTIFICATION_SENDING_DEBUG_START",
-                "task": task,
-                "layer": "task"
-            }
-        )
-        start_email_sending_time = time()
 
         expires_at_str = None
         if schema.expiresAt:
@@ -89,33 +66,10 @@ def process_email_notification(payload: dict):
         )
 
         
-        email_sending_time = time() - start_email_sending_time
-        
         status = StatusEmail.DONE
         provider_response = "E-mail enviado com sucesso."
         
-        logger.info(
-            "O envio de e-mail concluída com sucesso.",
-            extra={
-                "event": "EMAIL_NOTIFICATION_SENDING_SUCCESS",
-                "task": task,
-                "layer": "task",
-                "email_sending_time": email_sending_time,
-                "template": template_enum.value
-            }
-        )  
-        
     except Exception as exc:
-        logger.exception(
-            "Erro ao envia o e-mail",
-            extra={
-                "event": "EMAIL_NOTIFICATION_SENDING_ERROR",
-                "task": task,
-                "error": str(exc),
-                "layer": "task",
-                "type_error": exc.__class__.__name__,
-            }
-        )
         status = StatusEmail.ERROR
         provider_response = str(exc)
     
@@ -128,42 +82,8 @@ def process_email_notification(payload: dict):
             )
         )
 
-        deliver_webhook.delay(
-            payload=data.model_dump(),
-            delivery_id=str(uuid4())
-        )
-        logger.info(
-            "Atualizada com sucesso as informações da notificação de e-mail.",
-            extra={
-                "event": "EMAIL_NOTIFICATION_UPDATE_SUCCESS",
-                "task": task,
-                "layer": "task",
-                "idEmail": data.idEmail,
-            }
-        )  
 
-    except Exception as exc:
-        logger.exception(
-            "Erro ao atualizar as informações da notificação",
-            extra={
-                "event": "EMAIL_NOTIFICATION_UPDATE_ERROR",
-                "task": task,
-                "error": str(exc),
-                "layer": "task",
-                "type_error": exc.__class__.__name__,
-            }
-        )
-    
-    execution = time() - start
-
-    logger.info(
-        "A tarefa de envia a notificação para e-mail concluída com sucesso",
-        extra={
-            "event": "PROCESS_EMAIL_NOTIFICATION_SUCCESS",
-            "mutation": task,
-            "layer": "task",
-            "execution": execution
-        }
-    ) 
+    except Exception as exc:  
+        pass
     
     return {"status": True}

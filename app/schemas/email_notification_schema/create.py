@@ -2,7 +2,6 @@ from pydantic import (
     field_serializer, field_validator
 )
 from enum import Enum
-from uuid import uuid4
 
 from app.schemas.email_notification_schema.base import EmailNotificationBaseSchema
 from app.core.constants import SendType, ExpirationTime
@@ -29,6 +28,9 @@ class EmailNotificationCreateSchema(EmailNotificationBaseSchema):
         if not value:
             raise InvalidFieldsException("E-mail não pode ser vazio.")
         return value
+    
+    
+
     
     
 

@@ -1,5 +1,5 @@
-from app.config.celery import celery_app, logger
-from app.config.database import SessionLocalAsync, SessionLocalSync
-from app.config.redis import redis_client
-from app.config.settings import settings
+from app.core.config.celery import celery_app, logger
+from app.core.config.database import get_session
+from app.core.config.redis import redis_client
+from app.core.config.settings import settings
 

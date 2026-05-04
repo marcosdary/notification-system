@@ -1,8 +1,10 @@
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from collections.abc import AsyncGenerator
+
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, AsyncEngine, async_sessionmaker
 from sqlalchemy.engine import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from app.config.settings import settings
+from app.core.config.settings import settings
 
 
 engine_sync = create_engine(settings.DATABASE_URL_LOCALHOST)
@@ -13,7 +15,7 @@ SessionLocalSync = sessionmaker(
     bind=engine_sync
 )
 
-engine_async = create_async_engine(
+engine_async: AsyncEngine = create_async_engine(
     settings.DATABASE_URL_LOCALHOST_ASYNC,
     pool_size=10,           # Mantém até 10 conexões abertas
     max_overflow=20,        # Permite até 20 conexões extras em picos
@@ -21,8 +23,11 @@ engine_async = create_async_engine(
     pool_pre_ping=True      # Verifica se a conexão está viva antes de usar (evita erros 500)
 )
 
-SessionLocalAsync = sessionmaker(
+SessionLocalAsync = async_sessionmaker(
     bind=engine_async,
-    class_=AsyncSession,
     expire_on_commit=False
 )
+
+async def get_session():
+    async with SessionLocalAsync() as session:
+        yield session

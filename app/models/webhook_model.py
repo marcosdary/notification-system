@@ -2,7 +2,7 @@ from sqlalchemy import Column, VARCHAR, Enum, Text
 from uuid import uuid4
 
 from app.models.base_model import BaseModel
-from app.constants import StatusWebhook
+from app.core.constants import StatusWebhook
 
 class WebhookModel(BaseModel):
 
