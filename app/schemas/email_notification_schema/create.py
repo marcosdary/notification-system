@@ -4,11 +4,11 @@ from pydantic import (
 from enum import Enum
 from uuid import uuid4
 
-from app.schemas.email_notification_schema.base import BaseEmailNotificationSchema
-from app.constants import SendType, ExpirationTime
+from app.schemas.email_notification_schema.base import EmailNotificationBaseSchema
+from app.core.constants import SendType, ExpirationTime
 from app.exceptions import InvalidFieldsException
 
-class CreateEmailNotificationSchema(BaseEmailNotificationSchema):
+class EmailNotificationCreateSchema(EmailNotificationBaseSchema):
 
     idEmail: str | None = None
     recipientEmail: str

@@ -3,10 +3,10 @@ from enum import Enum
 from pydantic import field_serializer
 
 
-from app.schemas.email_notification_schema.base import BaseEmailNotificationSchema
-from app.constants import StatusEmail, SendType
+from app.schemas.email_notification_schema.base import EmailNotificationBaseSchema
+from app.core.constants import StatusEmail, SendType
 
-class ReadEmailNotificationSchema(BaseEmailNotificationSchema):
+class EmailNotificationReadSchema(EmailNotificationBaseSchema):
     idEmail: str | None = None
     recipientEmail: str
     status: StatusEmail | None = StatusEmail.PENDING # Status da notificação

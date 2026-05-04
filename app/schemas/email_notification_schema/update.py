@@ -2,10 +2,10 @@ from pydantic import field_serializer, Field
 from datetime import datetime
 from enum import Enum
 
-from app.constants import StatusEmail
+from app.core.constants import StatusEmail
 from app.schemas.webhook_schema.base import BaseWebhookSchema
 
-class UpdateEmailNotificationSchema(BaseWebhookSchema):
+class EmailNotificationUpdateSchema(BaseWebhookSchema):
     idEmail: str
     status: StatusEmail
     providerResponse: str | None = None

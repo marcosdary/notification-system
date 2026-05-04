@@ -8,8 +8,8 @@ from app.schemas.webhook_schema import (
     UpdateWebhookSchema,
     ReadWebhookSchema
 )
-from app.constants import StatusWebhook
-from app.config import settings
+from app.core.constants import StatusWebhook
+from app.core.config import settings
 from app.exceptions import (
     RetryableError, 
     FatalError,

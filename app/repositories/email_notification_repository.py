@@ -1,11 +1,9 @@
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import select, delete, and_, func
-from time import time
 from datetime import datetime
 
-from app.core import LOGGER as logger
-from app.config import SessionLocalAsync as SessionAsync, SessionLocalSync as SessionSync
-from app.constants import StatusEmail, SendType
+from app.core.config import SessionLocalAsync as SessionAsync, SessionLocalSync as SessionSync
+from app.core.constants import StatusEmail, SendType
 from app.exceptions import (
     EntityValidationError,
     UnknownError,
@@ -13,10 +11,10 @@ from app.exceptions import (
     ForbiddenActionError
 )
 from app.schemas.email_notification_schema import (
-    CreateEmailNotificationSchema,
-    ReadEmailNotificationSchema,
+    EmailNotificationCreateSchema,
+    EmailNotificationReadSchema,
     ListEmailNotificationSchema,
-    UpdateEmailNotificationSchema,
+    EmailNotificationUpdateSchema,
 )
 from app.schemas import PaginationSchema, DateRangeSchema
 from app.models import EmailNotificationsModel
@@ -77,91 +75,35 @@ class EmailNotificationRepository:
 
         return query.order_by(EmailNotificationsModel.createdAt.desc())
 
-    async def create(self, schema: CreateEmailNotificationSchema) -> ReadEmailNotificationSchema:
-        repository = "EmailNotificationRepository.create"
+    async def create(self, schema: EmailNotificationCreateSchema) -> EmailNotificationReadSchema:
+
 
         async with SessionAsync() as session:
-            start = time()
+           
 
             try:
-                logger.info(
-                    "Iniciando criação de email notification.",
-                    extra={
-                        "event": "EMAIL_NOTIFICATION_REPOSITORY_CREATE_START",
-                        "repository": repository,
-                        "layer": "repository",
-                        "table": self.__table,
-                    }
-                )
-
+               
                 notif = EmailNotificationsModel(**schema.model_dump())
                 session.add(notif)
                 await session.commit()
-
-                execution = time() - start
-
-                logger.info(
-                    "Email notification criada com sucesso.",
-                    extra={
-                        "event": "EMAIL_NOTIFICATION_REPOSITORY_CREATE_SUCCESS",
-                        "repository": repository,
-                        "execution_time": execution,
-                        "layer": "repository",
-                        "table": self.__table,
-                    }
-                )
-
-                return ReadEmailNotificationSchema.model_validate(notif)
+                return EmailNotificationReadSchema.model_validate(notif)
 
             except IntegrityError as exc:
                 await session.rollback()
 
-                logger.exception(
-                    "Erro de integridade ao criar email notification.",
-                    extra={
-                        "event": "EMAIL_NOTIFICATION_REPOSITORY_CREATE_ERROR_INTEGRITY",
-                        "repository": repository,
-                        "error": str(exc),
-                        "layer": "repository",
-                        "type_error": exc.__class__.__name__,
-                        "table": self.__table,
-                    }
-                )
                 raise EntityValidationError("Erro de integridade nos dados.")
 
             except Exception as exc:
                 await session.rollback()
 
-                logger.exception(
-                    "Erro inesperado ao criar email notification.",
-                    extra={
-                        "event": "EMAIL_NOTIFICATION_REPOSITORY_CREATE_ERROR",
-                        "repository": repository,
-                        "error": str(exc),
-                        "layer": "repository",
-                        "type_error": exc.__class__.__name__,
-                        "table": self.__table,
-                    }
-                )
                 raise UnknownError("Erro desconhecido ao salvar dados.")
 
-    async def select_by_id(self, idEmail: str) -> ReadEmailNotificationSchema:
-        repository = "EmailNotificationRepository.select_by_id"
+    async def select_by_id(self, idEmail: str) -> EmailNotificationReadSchema:
 
         async with SessionAsync() as session:
-            start = time()
+        
 
             try:
-                logger.info(
-                    "Buscando email notification por ID.",
-                    extra={
-                        "event": "EMAIL_NOTIFICATION_REPOSITORY_SELECT_BY_ID_START",
-                        "repository": repository,
-                        "idEmail": idEmail,
-                        "layer": "repository",
-                        "table": self.__table,
-                    }
-                )
 
                 stmt = await session.execute(
                     select(EmailNotificationsModel).where(
@@ -174,35 +116,12 @@ class EmailNotificationRepository:
                 if not notif:
                     raise NotFoundError("Notificação não encontrada.")
 
-                execution = time() - start
+               
 
-                logger.info(
-                    "Email notification encontrada com sucesso.",
-                    extra={
-                        "event": "EMAIL_NOTIFICATION_REPOSITORY_SELECT_BY_ID_SUCCESS",
-                        "repository": repository,
-                        "idEmail": idEmail,
-                        "layer": "repository",
-                        "execution_time": execution,
-                        "table": self.__table,
-                    }
-                )
-
-                return ReadEmailNotificationSchema.model_validate(notif)
+                return EmailNotificationReadSchema.model_validate(notif)
 
             except Exception as exc:
-                logger.exception(
-                    "Erro ao buscar email notification por ID.",
-                    extra={
-                        "event": "EMAIL_NOTIFICATION_REPOSITORY_SELECT_BY_ID_ERROR",
-                        "repository": repository,
-                        "idEmail": idEmail,
-                        "error": str(exc),
-                        "layer": "repository",
-                        "type_error": exc.__class__.__name__,
-                        "table": self.__table,
-                    }
-                )
+        
                 raise
 
     async def select_filter_all(
@@ -213,28 +132,10 @@ class EmailNotificationRepository:
         send_type: SendType = None,
         date: datetime = None
     ) -> ListEmailNotificationSchema:
-        repository = "EmailNotificationRepository.select_filter_all"
-
-        logger.info(
-            "Buscando lista de email notifications.",
-            extra={
-                "event": "EMAIL_NOTIFICATION_REPOSITORY_SELECT_ALL_START",
-                "repository": repository,
-                "layer": "repository",
-                "filter_by": {
-                    "pagination": pagination.model_dump(),
-                    "date_range": date_range.model_dump() if date_range else None,
-                    "send_type": send_type,
-                    "status_email": status_email
-                },
-                "table": self.__table,
-            }
-        )
 
         async with SessionAsync() as session:
             try:
-                start = time()    
-
+                
                 filters = self._build_filters(date_range, status_email, send_type, date)          
 
                 total = await self._count(session, filters)
@@ -247,29 +148,10 @@ class EmailNotificationRepository:
                 if not records:
                     raise NotFoundError("Nenhuma notificação encontrada.")
                 
-                execution = time() - start
-
-                logger.info(
-                    "Lista de email notifications retornada com sucesso.",
-                    extra={
-                        "event": "EMAIL_NOTIFICATION_REPOSITORY_SELECT_FILTER_ALL_SUCCESS",
-                        "repository": repository,
-                        "rows": len(records),
-                        "layer": "repository",
-                        "execution_time": execution,
-                        "filter_by": {
-                            "pagination": pagination.model_dump(),
-                            "date_range": date_range.model_dump() if date_range else None,
-                            "send_type": send_type,
-                            "status_email": status_email
-                        },
-                        "table": self.__table,
-                    }
-                )
 
                 return ListEmailNotificationSchema(
                         items=[
-                            ReadEmailNotificationSchema.model_validate(row)
+                            EmailNotificationReadSchema.model_validate(row)
                             for row in records
                         ],
                         limit=pagination.limit,
@@ -279,37 +161,17 @@ class EmailNotificationRepository:
                 )
             
             except Exception as exc:
-                logger.exception(
-                    "Erro ao buscar lista de email notifications.",
-                    extra={
-                        "event": "EMAIL_NOTIFICATION_REPOSITORY_SELECT_FILTER_ALL_ERROR",
-                        "repository": repository,
-                        "error": str(exc),
-                        "layer": "repository",
-                        "type_error": exc.__class__.__name__,
-                        "table": self.__table,
-                    }
-                )
+                
                 raise
 
 
-    def update(self, schema: UpdateEmailNotificationSchema) -> ReadEmailNotificationSchema:
-        repository = "EmailNotificationRepository.update"
+    def update(self, schema: EmailNotificationUpdateSchema) -> EmailNotificationReadSchema:
+       
 
         with SessionSync() as session:
-            start = time()
 
             try:
-                logger.info(
-                    "Atualizando email notification.",
-                    extra={
-                        "event": "EMAIL_NOTIFICATION_REPOSITORY_UPDATE_START",
-                        "repository": repository,
-                        "idEmail": schema.idEmail,
-                        "layer": "repository",
-                        "table": self.__table,
-                    }
-                )
+                
 
                 notif = session.query(EmailNotificationsModel).filter(
                     EmailNotificationsModel.idEmail == schema.idEmail
@@ -323,57 +185,21 @@ class EmailNotificationRepository:
 
                 session.commit()
 
-                execution = time() - start
-
-                logger.info(
-                    "Email notification atualizada com sucesso.",
-                    extra={
-                        "event": "EMAIL_NOTIFICATION_REPOSITORY_UPDATE_SUCCESS",
-                        "repository": repository,
-                        "idEmail": schema.idEmail,
-                        "execution_time": execution,
-                        "layer": "repository",
-                        "table": self.__table,
-                    }
-                )
-
-                return ReadEmailNotificationSchema.model_validate(notif)
+                return EmailNotificationReadSchema.model_validate(notif)
 
             except Exception as exc:
                 session.rollback()
 
-                logger.exception(
-                    "Erro ao atualizar email notification.",
-                    extra={
-                        "event": "EMAIL_NOTIFICATION_REPOSITORY_UPDATE_ERROR",
-                        "repository": repository,
-                        "idEmail": schema.idEmail,
-                        "error": str(exc),
-                        "layer": "repository",
-                        "type_error": exc.__class__.__name__,
-                        "table": self.__table,
-                    }
-                )
                 raise
 
 
     async def delete(self, idEmail: str) -> None:
-        repository = "EmailNotificationRepository.delete"
 
         async with SessionAsync() as session:
-            start = time()
+            
 
             try:
-                logger.info(
-                    "Iniciando deleção de email notification.",
-                    extra={
-                        "event": "EMAIL_NOTIFICATION_REPOSITORY_DELETE_START",
-                        "repository": repository,
-                        "idEmail": idEmail,
-                        "layer": "repository",
-                        "table": self.__table,
-                    }
-                )
+        
 
                 stmt = await session.execute(
                     select(EmailNotificationsModel).where(
@@ -391,84 +217,25 @@ class EmailNotificationRepository:
 
                 await session.delete(notif)
                 await session.commit()
-
-                execution = time() - start
-
-                logger.info(
-                    "Email notification deletada com sucesso.",
-                    extra={
-                        "event": "EMAIL_NOTIFICATION_REPOSITORY_DELETE_SUCCESS",
-                        "repository": repository,
-                        "idEmail": idEmail,
-                        "layer": "repository",
-                        "execution_time": execution,
-                        "table": self.__table,
-                    }
-                )
+               
 
             except Exception as exc:
                 await session.rollback()
 
-                logger.exception(
-                    "Erro ao deletar email notification.",
-                    extra={
-                        "event": "EMAIL_NOTIFICATION_REPOSITORY_DELETE_ERROR",
-                        "repository": repository,
-                        "idEmail": idEmail,
-                        "error": str(exc),
-                        "layer": "repository",
-                        "type_error": exc.__class__.__name__,
-                        "table": self.__table,
-                    }
-                )
                 raise
 
 
     async def delete_all(self) -> None:
-        repository = "EmailNotificationRepository.delete_all"
 
         async with SessionAsync() as session:
-            start = time()
 
             try:
-                logger.info(
-                    "Iniciando deleção em massa de email notifications.",
-                    extra={
-                        "event": "EMAIL_NOTIFICATION_REPOSITORY_DELETE_ALL_START",
-                        "repository": repository,
-                        "layer": "repository",
-                        "table": self.__table,
-                    }
-                )
 
                 await session.execute(delete(EmailNotificationsModel))
                 await session.commit()
 
-                execution = time() - start
-
-                logger.info(
-                    "Email notifications deletadas com sucesso.",
-                    extra={
-                        "event": "EMAIL_NOTIFICATION_REPOSITORY_DELETE_ALL_SUCCESS",
-                        "repository": repository,
-                        "execution_time": execution,
-                        "layer": "repository",
-                        "table": self.__table,
-                    }
-                )
 
             except Exception as exc:
                 await session.rollback()
 
-                logger.exception(
-                    "Erro ao deletar todas email notifications.",
-                    extra={
-                        "event": "EMAIL_NOTIFICATION_REPOSITORY_DELETE_ALL_ERROR",
-                        "repository": repository,
-                        "error": str(exc),
-                        "layer": "repository",
-                        "type_error": exc.__class__.__name__,
-                        "table": self.__table,
-                    }
-                )
                 raise

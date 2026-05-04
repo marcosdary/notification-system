@@ -6,8 +6,8 @@ from app.constants import Templates, SendType, StatusEmail
 from app.core import LOGGER as logger
 from app.config import celery_app
 from app.schemas.email_notification_schema import (
-    CreateEmailNotificationSchema, 
-    UpdateEmailNotificationSchema,
+    EmailNotificationCreateSchema, 
+    EmailNotificationUpdateSchema,
 )
 from app.services import EmailService, LoadTemplate
 from app.repositories import EmailNotificationRepository
@@ -26,7 +26,7 @@ def process_email_notification(payload: dict):
     )
     start = time()
 
-    schema = CreateEmailNotificationSchema(**payload)
+    schema = EmailNotificationCreateSchema(**payload)
     notification_repo = EmailNotificationRepository()
     email_service = EmailService()
     load_template = LoadTemplate()
@@ -121,7 +121,7 @@ def process_email_notification(payload: dict):
     
     try:
         data = notification_repo.update(
-            UpdateEmailNotificationSchema(
+            EmailNotificationUpdateSchema(
                 idEmail=schema.idEmail,
                 status=status,
                 providerResponse=provider_response,   

@@ -6,7 +6,7 @@ from app.exceptions import (
     FatalError,
     DatabaseUnknownError
 )
-from app.schemas.email_notification_schema import ReadEmailNotificationSchema
+from app.schemas.email_notification_schema import EmailNotificationReadSchema
 from app.schemas.webhook_schema import CreateWebhookSchema
 from app.utils import get_backoff_delay
 from app.services import WebhookDispatcherService
@@ -28,7 +28,7 @@ def deliver_webhook(self, payload: dict, delivery_id: str) -> None:
 
     start = time()
 
-    schema = ReadEmailNotificationSchema.model_validate(payload)
+    schema = EmailNotificationReadSchema.model_validate(payload)
     dispatcher = WebhookDispatcherService()
 
     try:
