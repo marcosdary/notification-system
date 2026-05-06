@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     WEBHOOK_SECRET: str 
     URL_WEBHOOK: str
 
-    REDIS_URL_LOCALHOST_ASYNC: str
+    REDIS_URL_LOCALHOST: str
     DATABASE_URL_LOCALHOST: str
     DATABASE_URL_LOCALHOST_ASYNC: str
 

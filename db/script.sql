@@ -13,38 +13,24 @@ create type status_email as enum (
 	'REJECTED'
 );
 
-create type status_webhook as enum (
-	'PENDING',
-	'SUCCESS',
-	'FAILED',
-	'RETRYING',
-	'DEAD_LETTER'
-);
 
 create table email_notification (
-	"idEmail" varchar(255) primary key,
-	"recipientEmail" varchar(400) not null,
+	"id_email" varchar(255) primary key,
+	"recipient_email" varchar(400) not null,
 	
-	"sendType" send_type not null,
+	"send_type" send_type not null,
 	"status" status_email not null,
 	
-	"actionLink" varchar(500),
+	"action_link" varchar(500),
     "code" varchar(10),
     "token" varchar(400),
-    "expiresAt" integer,
+    "expires_at" integer,
 	
-	"providerResponse" text default 'No response',
-	"createdAt" timestamp default current_timestamp,
-	"processedAt" timestamp default current_timestamp
+	"provider_response" text default 'No response',
+	"created_at" timestamp default current_timestamp,
+	"processed_at" timestamp default current_timestamp
 );
 
-create table webhook (
-	"idWebhook" varchar(255) primary key,
-	"status" status_webhook not null,
-	"response" text,
-	"createdAt" timestamp default current_timestamp,
-	"processedAt" timestamp default current_timestamp
-);
 
 
 drop table email_notification;

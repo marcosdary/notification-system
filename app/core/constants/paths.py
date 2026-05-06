@@ -1,3 +1,6 @@
 from pathlib import Path
 
 TEMPLATES_DIR = Path(__file__).parent.parent / "templates"
+
+UPLOADS_DIR = Path(__file__).parent.parent.parent / "uploads"
+

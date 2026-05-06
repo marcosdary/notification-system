@@ -1,6 +1,8 @@
 import resend
+from typing import List, Optional
 
 from app.core.config import settings
+from app.exceptions import UnknownError
 
 class EmailService:
 
@@ -9,7 +11,7 @@ class EmailService:
         self._api_key_resend = settings.API_KEY_RESEND
         self._sender = settings.SENDER
 
-    def send(self, recipient_email: str, subject: str, body: str) -> dict:
+    def send(self, recipients: List[str], subject: str, body: str, attachments: Optional[List[dict]] = None) -> dict:
         """Envia um e-mail com assunto e corpo em HTML.
 
         Configura a chave de API, define remetente, destinatário, assunto
@@ -32,12 +34,13 @@ class EmailService:
             
             params: resend.Emails.SendParams = {
                 "from": f"HorizonTecnology <{self._sender}>",
-                "to": [recipient_email],
+                "to": recipients,
                 "subject": subject,
                 "html": body, 
+                "attachments": attachments
             } 
             email: resend.Emails.SendResponse = resend.Emails.send(params)
 
             return email
         except Exception as exc:
-            raise Exception(f"Erro externo do servidor: {str(exc)}")
+            raise UnknownError(f"Erro externo do servidor: {str(exc)}")

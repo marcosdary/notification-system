@@ -1,7 +1,7 @@
 import strawberry
 
-from app.graphql.mutations import EmailNotificationMutation
+from app.graphql.mutations import EmailMutation
 
 @strawberry.type
-class Mutation(EmailNotificationMutation):
+class Mutation(EmailMutation):
     pass

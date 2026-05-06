@@ -1,7 +1,7 @@
 import strawberry
 
-from app.graphql.queries import EmailNotificationQuery
+from app.graphql.queries import EmailQuery
 
 @strawberry.type
-class Query(EmailNotificationQuery):
+class Query(EmailQuery):
     pass

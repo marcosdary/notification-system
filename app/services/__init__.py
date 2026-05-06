@@ -1,3 +1,3 @@
 from app.services.email_service import EmailService
 from app.services.load_template_service import LoadTemplate
-from app.services.webhook_dispatcher_service import WebhookDispatcherService
+from app.services.file_to_base64_service import file_to_base64

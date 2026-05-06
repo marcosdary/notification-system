@@ -1,22 +1,32 @@
 from enum import Enum
 
-class SendType(Enum):
-    REGISTER        = "REGISTER"
-    PASSWORD_CHANGE = "PASSWORD_CHANGE"
-    TWO_FACTOR_AUTH = "TWO_FACTOR_AUTH"
-    PASSWORD_RESET  = "PASSWORD_RESET"
+class FileTemplate(Enum):
+    REGISTER        = "register.html"
+    PASSWORD_CHANGE = "password_change.html"
+    TWO_FACTOR_AUTH = "two_factor_auth.html"
+    PASSWORD_RESET  = "password_reset.html"
+
+    @classmethod
+    def get_value(cls, name: str):
+        member = cls.__members__.get(name)
+        if not member:
+            raise KeyError("Membro incorreto")
+        return member
+
 
 class StatusEmail(Enum):
     PENDING     = "PENDING"
-    DONE        = "DONE"
-    ERROR       = "ERROR"
+    STARTED     = "STARTED"
+    SUCCESS     = "SUCCESS"
+    FAILURE     = "FAILURE"
     REJECTED    = "REJECTED"
+    REVOKED     = "REVOKED"
 
-class Templates(Enum):
-    PASSWORD_CHANGE = "password_change.html"
-    REGISTER        = "register.html"
-    PASSWORD_RESET  = "password_reset.html"
-    TWO_F_AUTH      = "two_f_auth.html"
+class Template(Enum):
+    PASSWORD_CHANGE = "PASSWORD_CHANGE"
+    REGISTER        = "REGISTER"
+    PASSWORD_RESET  = "PASSWORD_RESET"
+    TWO_FACTOR_AUTH = "TWO_FACTOR_AUTH"
 
 class StatusWebhook(Enum):
     PENDING     = "PENDING"

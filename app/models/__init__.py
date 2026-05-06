@@ -1,2 +1,0 @@
-from app.models.email_notification_model import EmailNotificationsModel
-from app.models.webhook_model import WebhookModel

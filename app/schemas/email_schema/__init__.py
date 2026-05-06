@@ -1,0 +1,5 @@
+from app.schemas.email_schema.email_schema import EmailSchema
+from app.schemas.email_schema.response_schema import ResponseSchema
+from app.schemas.email_schema.recipient_schema import RecipientSchema
+from app.schemas.email_schema.variables_schema import VariablesSchema
+from app.schemas.email_schema.attachment_schema import AttachmentSchema

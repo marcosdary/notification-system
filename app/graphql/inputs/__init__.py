@@ -1,4 +1,3 @@
-from app.graphql.inputs.email_notification_input import EmailNotificationInput, EmailNotificationFilterByInput
-from app.graphql.inputs.pagination_input import PaginationInput
+from app.graphql.inputs.email_input import EmailInput
 
-__all__ = ["EmailNotificationInput", "EmailNotificationFilterByInput", "PaginationInput"]
+__all__ = ["EmailInput"]

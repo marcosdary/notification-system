@@ -1,1 +1,1 @@
-from app.graphql.mutations.email_notification_mutation import EmailNotificationMutation
+from app.graphql.mutations.email_mutation import EmailMutation
