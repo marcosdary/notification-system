@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.graphql.mutation import Mutation
 from app.graphql.query import Query
 from app.graphql.utils import get_context
+from app.api import v1
 
 app = FastAPI(title="Notificação de sistema")
 
@@ -20,8 +21,8 @@ schema = strawberry.Schema(query=Query, mutation=Mutation)
 
 graphql_app = GraphQLRouter(schema=schema, context_getter=get_context)
 
-app.include_router(graphql_app, prefix="/graphql")
-
+app.include_router(graphql_app, prefix="/v1/graphql")
+app.include_router(v1.router, prefix="/v1")
 
 @app.get("/")
 def index():

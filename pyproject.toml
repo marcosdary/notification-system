@@ -15,8 +15,10 @@ dependencies = [
     "pydantic>=2.12.5",
     "pydantic-settings>=2.13.1",
     "pyjwt>=2.12.1",
+    "python-multipart>=0.0.27",
     "redis>=7.3.0",
     "resend>=2.24.0",
     "strawberry-graphql>=0.311.1",
+    "supabase>=2.30.0",
     "uvicorn>=0.42.0",
 ]

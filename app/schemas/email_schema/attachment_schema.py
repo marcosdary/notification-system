@@ -5,3 +5,6 @@ class AttachmentSchema(BaseModel):
     path: Optional[str] = None
     content: Optional[str] = None
     filename: str
+
+
+

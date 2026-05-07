@@ -17,11 +17,18 @@ class Settings(BaseSettings):
     WEBHOOK_SECRET: str 
     URL_WEBHOOK: str
 
+    POSTGRES_DB: str
+
     REDIS_URL_LOCALHOST: str
     DATABASE_URL_LOCALHOST: str
     DATABASE_URL_LOCALHOST_ASYNC: str
+    
+    SUPABASE_URL: str
+    SUPABASE_KEY: str
 
+    BUCKET_FILES_PUBLIC: str
 
+    
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
     return Settings()

@@ -1,0 +1,1 @@
+from app.core.storage.bucket import supabase_client

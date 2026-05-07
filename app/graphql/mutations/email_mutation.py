@@ -2,7 +2,6 @@ import strawberry
 from strawberry.exceptions import StrawberryGraphQLError
 
 from app.graphql.inputs import EmailInput
-from app.core.constants import StatusEmail
 from app.schemas.email_schema import EmailSchema, ResponseSchema
 from app.graphql.types import EmailResponseType
 from app.graphql.permissions import ApiKeyPermission
