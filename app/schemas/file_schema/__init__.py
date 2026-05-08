@@ -1,1 +1,2 @@
 from app.schemas.file_schema.file_upload_schema import FileUploadSchema
+from app.schemas.file_schema.files_upload_schema import FilesUploadSchema

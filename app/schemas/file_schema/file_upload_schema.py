@@ -1,5 +1,12 @@
 from pydantic import BaseModel
-from typing import List
+from datetime import datetime
+from typing import Optional
 
 class FileUploadSchema(BaseModel):
-    files: List[str]
+    expires_at: datetime
+    signed_url: str
+    path: str
+    error: Optional[str] = None
+
+
+

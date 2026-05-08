@@ -28,6 +28,8 @@ class Settings(BaseSettings):
 
     BUCKET_FILES_PUBLIC: str
 
+    EXPIRES_IN_SIGNED_URL: int
+
     
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
