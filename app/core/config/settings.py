@@ -9,19 +9,16 @@ class Settings(BaseSettings):
         extra="ignore"
     )
 
-    REDIS_URL: str
     API_KEY_RESEND: str
     API_KEY: str
     SENDER: str
-    DATABASE_URL: str
     WEBHOOK_SECRET: str 
     URL_WEBHOOK: str
 
-    POSTGRES_DB: str
+    REDIS_URL: str
 
-    REDIS_URL_LOCALHOST: str
-    DATABASE_URL_LOCALHOST: str
-    DATABASE_URL_LOCALHOST_ASYNC: str
+    POSTGRES_DB: str
+    POSTGRES_DB_ASYNC: str
     
     SUPABASE_URL: str
     SUPABASE_KEY: str
@@ -29,6 +26,7 @@ class Settings(BaseSettings):
     BUCKET_FILES_PUBLIC: str
 
     EXPIRES_IN_SIGNED_URL: int
+    EXPIRES_IN_FILE: int
 
     
 @lru_cache(maxsize=1)

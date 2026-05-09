@@ -1,14 +1,13 @@
-from pydantic import BaseModel, field_serializer
-from enum import Enum
+from pydantic import BaseModel, Field
+from typing import Optional
+from datetime import datetime
 
-from app.core.constants import StatusEmail
+from app.core.constants import Status
 
-class ResponseSchema(BaseModel):
-    id: str
-    status: StatusEmail
-    message: str 
-
-    @field_serializer("status", mode="plain")
-    def serialize_enuns(value: Enum) -> str:
-        return value.value
+class EmailResponseSchema(BaseModel):
+    id_task: str
+    status: Optional[Status] = Status.received
+    created_at: datetime = Field(default=datetime.now())
+    
+    
     

@@ -1,7 +1,7 @@
 from app.core.constants.enums import (
     FileTemplate,
     Template,
-    StatusEmail,
+    Status,
     ExpirationTime,
     StatusWebhook
 )

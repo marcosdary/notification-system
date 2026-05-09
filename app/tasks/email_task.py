@@ -1,9 +1,11 @@
-from os import remove
+from uuid import uuid4
 
 from app.celery import celery_app
-from app.schemas.email_schema import EmailSchema, AttachmentSchema
-from app.services import EmailService, LoadTemplate, file_to_base64
-from app.core.constants import UPLOADS_DIR
+from app.schemas.email_schema import EmailSchema, EmailTaskSchema
+from app.services import EmailService, LoadTemplate
+from app.core.config.database import SessionLocalSync as Session
+from app.core.constants import Status
+from app.repositories import EmailRepository
 
 @celery_app.task(pydantic=True)
 def process_send_email(schema: EmailSchema):
@@ -12,40 +14,40 @@ def process_send_email(schema: EmailSchema):
     load_template = LoadTemplate()
     
     recipients = list(map(lambda a: a.email, schema.to))
-    attachments = list()
-    
-    for attachment in schema.attachments:
-        if not attachment.path:
-            path = UPLOADS_DIR / attachment.filename
+    attachments = schema.attachments
 
-            if not path.exists():
-                continue
-
-            base64 = file_to_base64(path)
-            
-            attachments.append(
-                AttachmentSchema(
-                    filename=attachment.filename, 
-                    content=base64
-                ).model_dump(exclude_none=True)
-            )
-            path.unlink(missing_ok=True)
-            continue
-        
-        attachments.append(attachment.model_dump(exclude_none=True))
-
-    
     body = load_template.load(
         name=schema.template.value,
         info=schema.variables.model_dump(mode="json")
     )
-                
-    email_service.send(
-        recipients=recipients,   
-        subject=schema.subject,
-        body=body,
-        attachments=attachments
-    )
+
+    id_email = str(uuid4())
+    message = "E-mail enviado com sucesso."
+
+    try:        
+        response: dict = email_service.send(
+            recipients=recipients,   
+            subject=schema.subject,
+            body=body,
+            attachments=attachments.model_dump() if attachments else None
+        )
+        id_email = response.get("id")
+    except Exception as exc:
+        message = str(exc)
+
+    try:
+        with Session() as session:
+            email_repo = EmailRepository(session)
+            email_repo.create(EmailTaskSchema(
+                id_email=id_email,
+                status=Status.sent,
+                message=message
+            ))
+            session.commit()
+
+    except Exception as exc:
+        print(f"Erro na criação de salvar: {str(exc)}")
+
     return 
      
     

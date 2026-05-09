@@ -1,17 +1,23 @@
-from fastapi import APIRouter, UploadFile, status
+from fastapi import APIRouter, UploadFile, status, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 from datetime import datetime, timedelta
 from uuid import uuid4
 
 from app.core.storage import get_client_supabase
-from app.core.config import settings
+from app.core.config import settings, get_session
 from app.schemas.file_schema import FileUploadSchema, FilesUploadSchema
+from app.repositories import TemporaryFilesRepository
 
 router = APIRouter()
 
 @router.post("/uploadfile", status_code=status.HTTP_201_CREATED, response_model=FilesUploadSchema)
-async def upload_file(files: List[UploadFile]):
+async def upload_file(files: List[UploadFile], session: AsyncSession = Depends(get_session)):
     upload_files = [] 
+
+    temporary_files_repo = TemporaryFilesRepository(session)
+    await temporary_files_repo.create()
+    await session.commit()
 
     client_supabase = await get_client_supabase()
     storage = client_supabase.storage.from_(settings.BUCKET_FILES_PUBLIC)
