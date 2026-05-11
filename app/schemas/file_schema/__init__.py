@@ -1,2 +1,3 @@
-from app.schemas.file_schema.file_upload_schema import FileUploadSchema
-from app.schemas.file_schema.files_upload_schema import FilesUploadSchema
+from app.schemas.file_schema.file_read_schema import FileReadSchema
+from app.schemas.file_schema.files_read_schema import FilesReadSchema
+from app.schemas.file_schema.base_file_schema import BaseFileSchema

@@ -39,6 +39,11 @@ class Status(Enum):
     received   = "received"  
     # Ocorre sempre que o Resend recebe com sucesso um e-mail.   
 
+
+class StatusFile(Enum):
+    used        = "used"
+    not_used    = "not_used"
+     
 class Template(Enum):
     PASSWORD_CHANGE = "PASSWORD_CHANGE"
     REGISTER        = "REGISTER"

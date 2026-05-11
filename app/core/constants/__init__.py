@@ -3,6 +3,7 @@ from app.core.constants.enums import (
     Template,
     Status,
     ExpirationTime,
-    StatusWebhook
+    StatusWebhook,
+    StatusFile
 )
 from app.core.constants.paths import TEMPLATES_DIR, UPLOADS_DIR

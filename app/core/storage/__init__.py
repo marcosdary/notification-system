@@ -1,1 +1,1 @@
-from app.core.storage.bucket import get_client_supabase
+from app.core.storage.bucket import get_client_supabase, get_sync_client_supabase
